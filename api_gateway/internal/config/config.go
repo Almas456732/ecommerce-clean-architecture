@@ -6,6 +6,7 @@ type Config struct {
 	Port                string
 	InventoryServiceURL string
 	OrderServiceURL     string
+	UserServiceURL      string
 	JWTSecret           string
 }
 
@@ -14,6 +15,7 @@ func LoadConfig() *Config {
 		Port:                getEnv("PORT", "8080"),
 		InventoryServiceURL: getEnv("INVENTORY_SERVICE_URL", "http://localhost:8081"),
 		OrderServiceURL:     getEnv("ORDER_SERVICE_URL", "http://localhost:8082"),
+		UserServiceURL:      getEnv("USER_SERVICE_URL", "http://localhost:8083"),
 		JWTSecret:           getEnv("JWT_SECRET", "super-secret-key"),
 	}
 }

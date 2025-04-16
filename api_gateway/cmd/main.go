@@ -17,21 +17,17 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 
-	
 	inventoryProxy := createReverseProxy(cfg.InventoryServiceURL)
 	orderProxy := createReverseProxy(cfg.OrderServiceURL)
+	userProxy := createReverseProxy(cfg.UserServiceURL)
 
-	
 	router := gin.Default()
 
-	
 	router.Use(http.LoggingMiddleware())
 	router.Use(http.AuthMiddleware(cfg.JWTSecret))
 
-	
-	http.SetupRoutes(router, inventoryProxy, orderProxy)
+	http.SetupRoutes(router, inventoryProxy, orderProxy, userProxy)
 
-	
 	go func() {
 		log.Printf("API Gateway running on port %s", cfg.Port)
 		if err := router.Run(":" + cfg.Port); err != nil {
@@ -39,7 +35,6 @@ func main() {
 		}
 	}()
 
-	
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
