@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package inventory;
+
+option go_package = "inventory_service/proto/inventory";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// Product message represents a product in the inventory
+message Product {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string category_id = 4;
+  double price = 5;
+  int32 stock = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// ProductFilter for filtering products
+message ProductFilter {
+  string name = 1;
+  string category_id = 2;
+  double min_price = 3;
+  double max_price = 4;
+}
+
+// CreateProductRequest for creating a new product
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  string category_id = 3;
+  double price = 4;
+  int32 stock = 5;
+}
+
+// UpdateProductRequest for updating an existing product
+message UpdateProductRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string category_id = 4;
+  double price = 5;
+  int32 stock = 6;
+}
+
+// GetProductRequest for getting a product by id
+message GetProductRequest {
+  string id = 1;
+}
+
+// DeleteProductRequest for deleting a product by id
+message DeleteProductRequest {
+  string id = 1;
+}
+
+// ListProductsRequest for listing products with filtering and pagination
+message ListProductsRequest {
+  ProductFilter filter = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+// ListProductsResponse for returning a list of products
+message ListProductsResponse {
+  repeated Product products = 1;
+}
+
+// Category message represents a product category
+message Category {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+// CreateCategoryRequest for creating a new category
+message CreateCategoryRequest {
+  string name = 1;
+  string description = 2;
+}
+
+// UpdateCategoryRequest for updating an existing category
+message UpdateCategoryRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+// GetCategoryRequest for getting a category by id
+message GetCategoryRequest {
+  string id = 1;
+}
+
+// DeleteCategoryRequest for deleting a category by id
+message DeleteCategoryRequest {
+  string id = 1;
+}
+
+// ListCategoriesResponse for returning a list of categories
+message ListCategoriesResponse {
+  repeated Category categories = 1;
+}
+
+// ProductService provides operations on products
+service ProductService {
+  // Create a new product
+  rpc CreateProduct(CreateProductRequest) returns (Product);
+  
+  // Get a product by ID
+  rpc GetProduct(GetProductRequest) returns (Product);
+  
+  // Update an existing product
+  rpc UpdateProduct(UpdateProductRequest) returns (Product);
+  
+  // Delete a product
+  rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty);
+  
+  // List products with filtering and pagination
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+}
+
+// CategoryService provides operations on categories
+service CategoryService {
+  // Create a new category
+  rpc CreateCategory(CreateCategoryRequest) returns (Category);
+  
+  // Get a category by ID
+  rpc GetCategory(GetCategoryRequest) returns (Category);
+  
+  // Update an existing category
+  rpc UpdateCategory(UpdateCategoryRequest) returns (Category);
+  
+  // Delete a category
+  rpc DeleteCategory(DeleteCategoryRequest) returns (google.protobuf.Empty);
+  
+  // List all categories
+  rpc ListCategories(google.protobuf.Empty) returns (ListCategoriesResponse);
+} 

@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	grpcClient "api_gateway/internal/adapters/grpc"
 	"api_gateway/internal/adapters/http"
 	"api_gateway/internal/config"
 
@@ -17,7 +18,17 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 
-	inventoryProxy := createReverseProxy(cfg.InventoryServiceURL)
+	// Initialize gRPC clients
+	inventoryClient, err := grpcClient.NewInventoryServiceClient(cfg.InventoryServiceGRPCURL)
+	if err != nil {
+		log.Fatalf("Failed to connect to inventory gRPC service: %v", err)
+	}
+	defer inventoryClient.Close()
+
+	// Create HTTP handlers
+	inventoryHandler := http.NewInventoryHandler(inventoryClient)
+
+	// Create legacy reverse proxies for services not yet migrated to gRPC
 	orderProxy := createReverseProxy(cfg.OrderServiceURL)
 	userProxy := createReverseProxy(cfg.UserServiceURL)
 
@@ -26,7 +37,11 @@ func main() {
 	router.Use(http.LoggingMiddleware())
 	router.Use(http.AuthMiddleware(cfg.JWTSecret))
 
-	http.SetupRoutes(router, inventoryProxy, orderProxy, userProxy)
+	// Set up routes for inventory service using gRPC client
+	inventoryHandler.SetupRoutes(router)
+
+	// Set up routes for other services still using proxies
+	http.SetupProxyRoutes(router, orderProxy, userProxy)
 
 	go func() {
 		log.Printf("API Gateway running on port %s", cfg.Port)

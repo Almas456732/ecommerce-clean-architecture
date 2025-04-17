@@ -9,13 +9,31 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Legacy function - will be removed as services migrate to gRPC
 func SetupRoutes(router *gin.Engine, inventoryProxy, orderProxy, userProxy *httputil.ReverseProxy) {
-
 	inventory := router.Group("/inventory")
 	{
 		inventory.Any("/*path", gin.WrapH(inventoryProxy))
 	}
 
+	orders := router.Group("/orders")
+	{
+		orders.Any("/*path", gin.WrapH(orderProxy))
+	}
+
+	// User service routes - forward all requests at the users path to the user service
+	users := router.Group("/users")
+	{
+		users.Any("/*path", forwardUserID(), gin.WrapH(userProxy))
+	}
+
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+}
+
+// SetupProxyRoutes configures routes for services that still use HTTP proxies
+func SetupProxyRoutes(router *gin.Engine, orderProxy, userProxy *httputil.ReverseProxy) {
 	orders := router.Group("/orders")
 	{
 		orders.Any("/*path", gin.WrapH(orderProxy))
@@ -78,10 +96,8 @@ func AuthMiddleware(secret string) gin.HandlerFunc {
 
 func LoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		log.Printf("%s %s %s", c.Request.Method, c.Request.URL.Path, c.Request.RemoteAddr)
 		c.Next()
-
 		log.Printf("Response: %d", c.Writer.Status())
 	}
 }
